@@ -157,6 +157,14 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       Kivétel
     </button>
+    <button class="btn btn-outline" style="margin-bottom:10px;" onclick="goPage('page-move')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M5 9l4-4 4 4M9 5v14M19 15l-4 4-4-4M15 19V5"/></svg>
+      Mozgatás
+    </button>
+    <button class="btn btn-outline" style="margin-bottom:10px;" onclick="goPage('page-history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Mozgásnapló
+    </button>
     <button class="btn btn-outline" style="margin-bottom:10px;" onclick="goPage('page-location')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
       Tárhely QR generálás
@@ -316,6 +324,84 @@
     <div class="divider"></div>
     <div class="card-title">Összes raklap</div>
     <div id="pallet-list"><div class="empty">Betöltés...</div></div>
+  </div>
+
+  <!-- MOZGATÁS -->
+  <div class="page" id="page-move">
+    <div class="card-title">Raklap mozgatása</div>
+    <div class="steps">
+      <div class="step active" id="move-step1"></div>
+      <div class="step" id="move-step2"></div>
+      <div class="step" id="move-step3"></div>
+    </div>
+
+    <div id="move-phase1">
+      <div class="card">
+        <div class="scan-label">1. lépés: Scanneld be az <strong>áthelyezendő raklapot</strong></div>
+        <div class="scan-box">
+          <div id="reader-move1"></div>
+          <div class="scan-result" id="move-pallet-result"></div>
+        </div>
+        <button class="btn btn-primary" onclick="startScan('reader-move1', onMovePallet)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+          Raklap beolvasása
+        </button>
+      </div>
+    </div>
+
+    <div id="move-phase2" style="display:none;">
+      <div class="card" style="border-color:var(--accent);">
+        <div style="font-size:12px;color:var(--text2);">Raklap</div>
+        <div id="move-pallet-display" style="font-size:18px;font-weight:700;color:var(--accent);margin-top:4px;"></div>
+        <div id="move-product-display" style="font-size:13px;color:var(--text2);margin-top:3px;"></div>
+        <div id="move-fromloc-display" style="font-size:13px;color:var(--text2);margin-top:2px;"></div>
+      </div>
+      <div class="card">
+        <div class="scan-label">2. lépés: Scanneld be az <strong>új tárhelyet</strong></div>
+        <div class="scan-box">
+          <div id="reader-move2"></div>
+          <div class="scan-result" id="move-loc-result"></div>
+        </div>
+        <button class="btn btn-success" onclick="startScan('reader-move2', onMoveLocation)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+          Új tárhely beolvasása
+        </button>
+      </div>
+      <button class="btn btn-outline" onclick="resetMove()">Visszalépés</button>
+    </div>
+
+    <div id="move-phase3" style="display:none;">
+      <div class="card" style="border-color:var(--green);">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Mozgatás összefoglalója</div>
+        <div class="sr-row"><span class="sr-key">Raklap</span><span class="sr-val" id="move-confirm-pallet"></span></div>
+        <div class="sr-row"><span class="sr-key">Termék</span><span class="sr-val" id="move-confirm-product"></span></div>
+        <div class="sr-row"><span class="sr-key">Honnan</span><span class="sr-val" style="color:var(--red)" id="move-confirm-from"></span></div>
+        <div class="sr-row"><span class="sr-key">Hova</span><span class="sr-val" style="color:var(--green)" id="move-confirm-to"></span></div>
+      </div>
+      <button class="btn btn-success" onclick="confirmMove()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><polyline points="20 6 9 17 4 12"/></svg>
+        Mozgatás megerősítése
+      </button>
+      <button class="btn btn-outline" style="margin-top:8px;" onclick="resetMove()">Mégsem</button>
+    </div>
+  </div>
+
+  <!-- ELŐZMÉNYEK -->
+  <div class="page" id="page-history">
+    <div class="card-title">Mozgásnapló</div>
+    <div class="card">
+      <div class="form-group" style="margin-bottom:8px;">
+        <label>Raklap kód keresése</label>
+        <input class="input" id="history-input" type="text" placeholder="pl. PLT-260609-BCDM">
+      </div>
+      <button class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="loadHistory()">Előzmények betöltése</button>
+      <button class="btn btn-outline btn-sm" style="width:100%;" onclick="startScan('reader-history', onHistoryScan)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+        QR beolvasással keresés
+      </button>
+      <div id="reader-history" style="margin-top:10px;border-radius:8px;overflow:hidden;"></div>
+    </div>
+    <div id="history-list"><div class="empty">Adj meg egy raklap kódot</div></div>
   </div>
 
 </div>
@@ -667,6 +753,147 @@ function printLocationQR() {
     <br><button onclick="window.print()">Nyomtatás</button>
   </body></html>`);
   w.document.close();
+}
+
+// MOVE
+let movePalletData = null;
+let moveNewLocation = null;
+
+async function onMovePallet(code) {
+  document.getElementById('move-pallet-result').textContent = code;
+  document.getElementById('move-pallet-result').classList.add('visible');
+  try {
+    const pallets = await api('GET', `pallets?pallet_code=eq.${encodeURIComponent(code)}&select=id,pallet_code,product_name,location_id`);
+    if (pallets.length === 0) { toast('Ismeretlen raklap!', 'error'); return; }
+    const pallet = pallets[0];
+    if (!pallet.location_id) { toast('Ez a raklap nincs betárolva!', 'error'); return; }
+    let locCode = '–';
+    const locs = await api('GET', `locations?id=eq.${pallet.location_id}&select=location_code`);
+    if (locs.length > 0) locCode = locs[0].location_code;
+    movePalletData = pallet;
+    movePalletData._fromLocCode = locCode;
+    document.getElementById('move-pallet-display').textContent = pallet.pallet_code;
+    document.getElementById('move-product-display').textContent = pallet.product_name || '–';
+    document.getElementById('move-fromloc-display').textContent = 'Jelenlegi tárhely: ' + locCode;
+    document.getElementById('move-step1').classList.remove('active');
+    document.getElementById('move-step1').classList.add('done');
+    document.getElementById('move-step2').classList.add('active');
+    document.getElementById('move-phase1').style.display = 'none';
+    document.getElementById('move-phase2').style.display = 'block';
+  } catch(e) { toast('Hiba: ' + e.message, 'error'); }
+}
+
+async function onMoveLocation(code) {
+  if (code === movePalletData._fromLocCode) { toast('Ez már az aktuális tárhely!', 'error'); return; }
+  document.getElementById('move-loc-result').textContent = code;
+  document.getElementById('move-loc-result').classList.add('visible');
+  try {
+    const locs = await api('GET', `locations?location_code=eq.${encodeURIComponent(code)}&select=id,is_occupied`);
+    if (locs.length > 0 && locs[0].is_occupied) { toast('Ez a tárhely már foglalt!', 'error'); return; }
+    moveNewLocation = { code };
+    if (locs.length > 0) moveNewLocation.id = locs[0].id;
+    document.getElementById('move-confirm-pallet').textContent = movePalletData.pallet_code;
+    document.getElementById('move-confirm-product').textContent = movePalletData.product_name || '–';
+    document.getElementById('move-confirm-from').textContent = movePalletData._fromLocCode;
+    document.getElementById('move-confirm-to').textContent = code;
+    document.getElementById('move-step2').classList.remove('active');
+    document.getElementById('move-step2').classList.add('done');
+    document.getElementById('move-step3').classList.add('active');
+    document.getElementById('move-phase2').style.display = 'none';
+    document.getElementById('move-phase3').style.display = 'block';
+  } catch(e) { toast('Hiba: ' + e.message, 'error'); }
+}
+
+async function confirmMove() {
+  if (!movePalletData || !moveNewLocation) return;
+  try {
+    // Régi tárhely felszabadítása
+    await api('PATCH', `locations?id=eq.${movePalletData.location_id}`, { is_occupied: false });
+    // Új tárhely létrehozása ha nem létezik
+    let newLocId = moveNewLocation.id;
+    if (!newLocId) {
+      const newLoc = await api('POST', 'locations', { location_code: moveNewLocation.code, is_occupied: false });
+      newLocId = newLoc[0].id;
+    }
+    // Új tárhely foglalása + raklap frissítése
+    await api('PATCH', `locations?id=eq.${newLocId}`, { is_occupied: true });
+    await api('PATCH', `pallets?id=eq.${movePalletData.id}`, { location_id: newLocId, status: 'stored' });
+    // Napló
+    await api('POST', 'pallet_history', {
+      pallet_id: movePalletData.id, action: 'move',
+      from_location: movePalletData._fromLocCode,
+      to_location: moveNewLocation.code, user_name: 'admin'
+    });
+    toast(`✓ Áthelyezve: ${movePalletData._fromLocCode} → ${moveNewLocation.code}`);
+    document.getElementById('move-step3').classList.remove('active');
+    document.getElementById('move-step3').classList.add('done');
+    setTimeout(resetMove, 2000);
+    loadStats();
+  } catch(e) { toast('Hiba: ' + e.message, 'error'); }
+}
+
+function resetMove() {
+  movePalletData = null;
+  moveNewLocation = null;
+  document.getElementById('move-phase1').style.display = 'block';
+  document.getElementById('move-phase2').style.display = 'none';
+  document.getElementById('move-phase3').style.display = 'none';
+  document.getElementById('move-step1').className = 'step active';
+  document.getElementById('move-step2').className = 'step';
+  document.getElementById('move-step3').className = 'step';
+  document.getElementById('move-pallet-result').classList.remove('visible');
+  document.getElementById('move-loc-result').classList.remove('visible');
+  document.getElementById('reader-move1').innerHTML = '';
+  document.getElementById('reader-move2').innerHTML = '';
+}
+
+// HISTORY
+function onHistoryScan(code) {
+  document.getElementById('history-input').value = code;
+  loadHistory();
+}
+
+async function loadHistory() {
+  const q = document.getElementById('history-input').value.trim();
+  if (!q) { toast('Add meg a raklap kódot!', 'error'); return; }
+  const el = document.getElementById('history-list');
+  el.innerHTML = '<div class="empty">Betöltés...</div>';
+  try {
+    const pallets = await api('GET', `pallets?pallet_code=eq.${encodeURIComponent(q)}&select=id,pallet_code,product_name,status,location_id`);
+    if (pallets.length === 0) { el.innerHTML = '<div class="empty">Nem található raklap</div>'; return; }
+    const pallet = pallets[0];
+    let locCode = '–';
+    if (pallet.location_id) {
+      const locs = await api('GET', `locations?id=eq.${pallet.location_id}&select=location_code`);
+      if (locs.length > 0) locCode = locs[0].location_code;
+    }
+    const history = await api('GET', `pallet_history?pallet_id=eq.${pallet.id}&order=created_at.desc&select=*`);
+    const actionLabel = { store: '📥 Betárolás', remove: '📤 Kivétel', move: '🔄 Mozgatás', created: '📦 Létrehozva' };
+    const actionColor = { store: 'var(--green)', remove: 'var(--red)', move: 'var(--accent)', created: 'var(--text2)' };
+    const statusBadge = pallet.status === 'stored' ? 'badge-green' : pallet.status === 'removed' ? 'badge-red' : 'badge-blue';
+    el.innerHTML = `
+      <div class="card" style="margin-bottom:12px;">
+        <div class="sr-row"><span class="sr-key">Raklap</span><span class="sr-val">${pallet.pallet_code}</span></div>
+        <div class="sr-row"><span class="sr-key">Termék</span><span class="sr-val">${pallet.product_name || '–'}</span></div>
+        <div class="sr-row"><span class="sr-key">Jelenlegi tárhely</span><span class="sr-val" style="color:var(--green)">${locCode}</span></div>
+        <div class="sr-row"><span class="sr-key">Státusz</span><span class="badge ${statusBadge}">${pallet.status}</span></div>
+      </div>
+      <div class="card-title">Mozgástörténet (${history.length} esemény)</div>
+      ${history.length === 0 ? '<div class="empty">Nincs előzmény</div>' : history.map(h => {
+        const d = new Date(h.created_at);
+        const dateStr = `${d.toLocaleDateString('hu-HU')} ${d.toLocaleTimeString('hu-HU', {hour:'2-digit',minute:'2-digit'})}`;
+        const from = h.from_location ? `${h.from_location} → ` : '';
+        const to = h.to_location || '–';
+        return `<div class="list-item" style="margin-bottom:8px;">
+          <div class="list-item-main">
+            <div class="list-item-title" style="color:${actionColor[h.action] || 'var(--text)'};">${actionLabel[h.action] || h.action}</div>
+            <div class="list-item-sub">${from}${to}</div>
+            <div class="list-item-sub">${dateStr} · ${h.user_name}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    `;
+  } catch(e) { el.innerHTML = '<div class="empty">Betöltési hiba</div>'; toast('Hiba: ' + e.message, 'error'); }
 }
 
 // INIT
